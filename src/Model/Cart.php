@@ -3,7 +3,6 @@
 
 namespace Makaira\Headless\Model;
 
-
 class Cart
 {
 
@@ -22,14 +21,14 @@ class Cart
         $items = $cart->getQuote()->getAllItems();
 
         $returnedData = [];
-        $data = [];
         foreach($items as $item) {
-            $data['Id'] = $item->getProductId();
-            $data['Name'] = $item->getName();
-            $data['Quantity'] = $item->getQty();
-            $data['Price'] = $item->getPrice();
+            $data = [];
+            $data['id'] = $item->getProductId();
+            $data['name'] = $item->getName();
+            $data['quantity'] = $item->getQty();
+            $data['price'] = $item->getPrice();
 
-            array_push($returnedData, $data);
+            $returnedData[] = $data;
         }
 
         $subTotal = $cart->getQuote()->getSubtotal();
@@ -76,14 +75,14 @@ class Cart
             $items = $cart->getQuote()->getAllItems();
 
             $returnedData = [];
-            $data = [];
             foreach($items as $item) {
-                $data['Id'] = $item->getProductId();
-                $data['Name'] = $item->getName();
-                $data['Quantity'] = $item->getQty();
-                $data['Price'] = $item->getPrice();
+                $data = [];
+                $data['id'] = $item->getProductId();
+                $data['name'] = $item->getName();
+                $data['quantity'] = $item->getQty();
+                $data['price'] = $item->getPrice();
 
-                array_push($returnedData, $data);
+                $returnedData[] = $data;
             }
 
             $subTotal = $quote->getSubtotal();
@@ -95,7 +94,7 @@ class Cart
                     "total" => $subTotal
                 ]
             ];
-        } catch (Mage_Core_Exception $e) {
+        } catch (\Exception $e) {
             $response = [
                 "success" => false,
                 "message" => "Artikel konnte nicht hinzugefügt werden.",
