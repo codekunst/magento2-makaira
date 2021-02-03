@@ -2,41 +2,39 @@
 
 namespace Makaira\Headless\Api;
 
-interface CartInterface {
-
+interface CartInterface
+{
     /**
      * GET Method
      *
-     * @api
      * @return string
+     * @api
      */
-    public function getCart();
+    public function get();
 
     /**
      * POST Method
      *
-     * @api
-     * @param string $variantId
-     * @param int $quantity
      * @return string
+     * @api
      */
-    public function addToCart($variantId, $quantity);
+    public function add();
 
     /**
      * PUT Method
      *
-     * @api
-     * @param int $quantity
+     * @param string $variantId
      * @return string
+     * @api
      */
-    public function updateCart($quantity);
+    public function update($variantId);
 
     /**
      * DELETE Method
      *
-     * @api
+     * @param string $variantId
      * @return string
+     * @api
      */
-    public function deleteCart();
-
+    public function delete($variantId);
 }

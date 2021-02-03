@@ -1,27 +1,42 @@
 <?php
 
-
 namespace Makaira\Headless\Model;
 
-class Cart
+use Makaira\Headless\Api\CartInterface;
+
+class Cart implements CartInterface
 {
+    protected $cartModel;
+    protected $productModel;
+    protected $sessionModel;
+    protected $request;
+
+    public function __construct(
+        \Magento\Checkout\Model\Cart $cartModel,
+        \Magento\Catalog\Model\Product $productModel,
+        \Magento\Checkout\Model\Session $sessionModel,
+        \Magento\Framework\Webapi\Rest\Request $request
+    )
+    {
+        $this->cartModel = $cartModel;
+        $this->productModel = $productModel;
+        $this->sessionModel = $sessionModel;
+        $this->request = $request;
+    }
 
     /**
      * GET Method
      *
+     * @return string
      * @api
-     * @return mixed
      */
-    public function getCart()
+    public function get()
     {
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
-
         // get quote items array
-        $items = $cart->getQuote()->getAllItems();
+        $items = $this->cartModel->getQuote()->getAllItems();
 
         $returnedData = [];
-        foreach($items as $item) {
+        foreach ($items as $item) {
             $data = [];
             $data['id'] = $item->getProductId();
             $data['name'] = $item->getName();
@@ -31,7 +46,7 @@ class Cart
             $returnedData[] = $data;
         }
 
-        $subTotal = $cart->getQuote()->getSubtotal();
+        $subTotal = $this->cartModel->getQuote()->getSubtotal();
 
         $response = [
             "success" => true,
@@ -47,35 +62,29 @@ class Cart
     /**
      * POST Method
      *
-     * @api
-     * @param string $variantId
-     * @param int $quantity
      * @return mixed
+     * @api
      */
-    public function addToCart($variantId, $quantity)
+    public function add()
     {
-        try {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        $requestBody = $this->request->getBodyParams();
+        $variantId = $requestBody["variantId"];
+        $quantity = $requestBody["quantity"];
 
-            $product = $objectManager->create('Magento\Catalog\Model\Product')->load($variantId);
+        try {
+            $product = $this->productModel->load($variantId);
             $params = array(
                 'product' => $variantId,
                 'qty' => $quantity
             );
 
-            $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
-            $cart->addProduct($product, $params);
-            $cart->save();
+            $this->cartModel->addProduct($product, $params);
+            $this->cartModel->save();
 
-            $quote = $objectManager->get('\Magento\Checkout\Model\Session')->getQuote();
-
-            // Calculate the new Cart total and Save Quote
-            $quote->collectTotals()->save();
-
-            $items = $cart->getQuote()->getAllItems();
+            $items = $this->cartModel->getQuote()->getAllItems();
 
             $returnedData = [];
-            foreach($items as $item) {
+            foreach ($items as $item) {
                 $data = [];
                 $data['id'] = $item->getProductId();
                 $data['name'] = $item->getName();
@@ -85,7 +94,7 @@ class Cart
                 $returnedData[] = $data;
             }
 
-            $subTotal = $quote->getSubtotal();
+            $subTotal = $this->cartModel->getQuote()->getSubtotal();
 
             $response = [
                 "success" => true,
@@ -108,59 +117,62 @@ class Cart
     /**
      * PUT Method
      *
-     * @api
-     * @param int $quantity
+     * @param string $variantId
      * @return mixed
+     * @api
      */
-    public function updateCart($quantity)
+    public function update($variantId)
     {
-       /* $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
+        // TODO
+        /* $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+         $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
 
-        // get quote items array
-        $items = $cart->getQuote()->getAllItems();
+         // get quote items array
+         $items = $cart->getQuote()->getAllItems();
 
-        $subTotal = $cart->getQuote()->getSubtotal();
-        $grandTotal = $cart->getQuote()->getGrandTotal();
+         $subTotal = $cart->getQuote()->getSubtotal();
+         $grandTotal = $cart->getQuote()->getGrandTotal();
 
-        $response = [
-            "success" => true,
-            "cart" => [
-                "items" => $returnedData,
-                "total" => $subTotal
-            ]
-        ];
+         $response = [
+             "success" => true,
+             "cart" => [
+                 "items" => $returnedData,
+                 "total" => $subTotal
+             ]
+         ];
 
-        return json_encode($response);*/
+         return json_encode($response);*/
     }
 
     /**
      * DELETE Method
      *
-     * @api
+     * @param string $variantId
      * @return string
+     * @api
      */
-    public function deleteCart()
+    public function delete($variantId)
     {
-       /* try {
-            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
+        // TODO
+        /* try {
+             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+             $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
 
-            // get quote items array
-            $items = $cart->getQuote()->getAllItems();
+             // get quote items array
+             $items = $cart->getQuote()->getAllItems();
 
-            $response = [
-                "success" => true,
-                "message" => "Der Artikel wurde entfernt.",
-                //"variantId" => $variantId
-            ];
-        } catch(Exception $e){
-            $response = [
-                "success" => false,
-                "message" => "Der Artikel konnte nicht entfernt werden.",
-                "error" => "789"
-            ];
-        }
-        return json_encode($response);*/
+             $response = [
+                 "success" => true,
+                 "message" => "Der Artikel wurde entfernt.",
+                 //"variantId" => $variantId
+             ];
+         } catch(Exception $e){
+             $response = [
+                 "success" => false,
+                 "message" => "Der Artikel konnte nicht entfernt werden.",
+                 "error" => "789"
+             ];
+         }
+         return json_encode($response);*/
     }
 }
