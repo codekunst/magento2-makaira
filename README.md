@@ -1,1 +1,1 @@
-# magento2-makaira-headless
+# Makaira Headless Extension for Magento 2
