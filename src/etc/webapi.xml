@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route url="/V1/makaira-headless/cart" method="GET">
+        <service class="Makaira\Headless\Api\CartInterface" method="getCart"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/makaira-headless/cart/:itemId" method="POST">
+        <service class="Makaira\Headless\Api\CartInterface" method="addToCart"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/makaira-headless/cart/:itemId" method="PUT">
+        <service class="Makaira\Headless\Api\CartInterface" method="updateCart"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route url="/V1/makaira-headless/cart/:itemId" method="DELETE">
+        <service class="Makaira\Headless\Api\CartInterface" method="deleteCart"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>
