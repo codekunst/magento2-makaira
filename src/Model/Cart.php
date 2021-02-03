@@ -98,7 +98,7 @@ class Cart
             $response = [
                 "success" => false,
                 "message" => "Artikel konnte nicht hinzugefügt werden.",
-                "error" => "123"
+                "error" => $e->getMessage()
             ];
         }
 
