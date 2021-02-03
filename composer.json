@@ -1,7 +1,6 @@
 {
   "name": "codekunst/magento2-makaira",
   "description": "Makaira Headless Extension for Magento 2",
-  "version": "1.0.0",
   "type": "magento2-module",
   "license": "proprietary",
   "authors": [
