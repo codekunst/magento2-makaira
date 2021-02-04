@@ -25,4 +25,10 @@
             <resource ref="anonymous"/>
         </resources>
     </route>
+    <route url="/V1/makaira-headless/user/" method="GET">
+        <service class="Makaira\Headless\Api\UserInterface" method="get"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
 </routes>
