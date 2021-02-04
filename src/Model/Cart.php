@@ -132,11 +132,9 @@ class Cart implements CartInterface
                 'qty' => $quantity
             );
 
-            //Get the cart item based on the passed product id (from URL)
             $cartItem = $this->cartModel->getQuote()->getItemByProduct($product);
             $cartItemId = $cartItem->getId();
 
-            //update the cart item
             $this->cartModel->updateItem($cartItemId, $params);
             $this->cartModel->save();
 
@@ -165,7 +163,7 @@ class Cart implements CartInterface
         } catch (\Exception $e) {
             $response = [
                 "success" => false,
-                "message" => "Artikel konnte geändert werden.",
+                "message" => "Artikel konnte nicht geändert werden.",
                 "error" => $e->getMessage()
             ];
         }
@@ -182,26 +180,28 @@ class Cart implements CartInterface
      */
     public function delete($variantId)
     {
-        // TODO
-        /* try {
-             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-             $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
+        try {
+            $product = $this->productModel->load($variantId);
 
-             // get quote items array
-             $items = $cart->getQuote()->getAllItems();
+            $cartItem = $this->cartModel->getQuote()->getItemByProduct($product);
+            $cartItemId = $cartItem->getId();
 
-             $response = [
-                 "success" => true,
-                 "message" => "Der Artikel wurde entfernt.",
-                 //"variantId" => $variantId
-             ];
-         } catch(Exception $e){
-             $response = [
-                 "success" => false,
-                 "message" => "Der Artikel konnte nicht entfernt werden.",
-                 "error" => "789"
-             ];
-         }
-         return json_encode($response);*/
+            $this->cartModel->removeItem($cartItemId);
+            $this->cartModel->save();
+
+            $response = [
+                "success" => true,
+                "message" => "Der Artikel wurde entfernt.",
+                "variantId" => $variantId
+            ];
+        } catch (\Exception $e) {
+            $response = [
+                "success" => false,
+                "message" => "Der Artikel konnte nicht entfernt werden.",
+                "error" => $e->getMessage()
+            ];
+        }
+
+        return json_encode($response);
     }
 }
