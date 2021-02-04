@@ -123,25 +123,54 @@ class Cart implements CartInterface
      */
     public function update($variantId)
     {
-        // TODO
-        /* $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-         $cart = $objectManager->get('\Magento\Checkout\Model\Cart');
+        $requestBody = $this->request->getBodyParams();
+        $quantity = $requestBody["quantity"];
 
-         // get quote items array
-         $items = $cart->getQuote()->getAllItems();
+        try {
+            $product = $this->productModel->load($variantId);
+            $params = array(
+                'qty' => $quantity
+            );
 
-         $subTotal = $cart->getQuote()->getSubtotal();
-         $grandTotal = $cart->getQuote()->getGrandTotal();
+            //Get the cart item based on the passed product id (from URL)
+            $cartItem = $this->cartModel->getQuote()->getItemByProduct($product);
+            $cartItemId = $cartItem->getId();
 
-         $response = [
-             "success" => true,
-             "cart" => [
-                 "items" => $returnedData,
-                 "total" => $subTotal
-             ]
-         ];
+            //update the cart item
+            $this->cartModel->updateItem($cartItemId, $params);
+            $this->cartModel->save();
 
-         return json_encode($response);*/
+            $items = $this->cartModel->getQuote()->getAllItems();
+
+            $returnedData = [];
+            foreach ($items as $item) {
+                $data = [];
+                $data['id'] = $item->getProductId();
+                $data['name'] = $item->getName();
+                $data['quantity'] = $item->getQty();
+                $data['price'] = $item->getPrice();
+
+                $returnedData[] = $data;
+            }
+
+            $subTotal = $this->cartModel->getQuote()->getSubtotal();
+
+            $response = [
+                "success" => true,
+                "cart" => [
+                    "items" => $returnedData,
+                    "total" => $subTotal
+                ]
+            ];
+        } catch (\Exception $e) {
+            $response = [
+                "success" => false,
+                "message" => "Artikel konnte geändert werden.",
+                "error" => $e->getMessage()
+            ];
+        }
+
+        return json_encode($response);
     }
 
     /**
