@@ -42,7 +42,7 @@ class User implements UserInterface
             ];
         } else {
             $response = [
-                "success" => false,
+                "success" => true,
                 "message" => "Kunde ist nicht angemeldet."
             ];
         }
