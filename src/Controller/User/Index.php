@@ -3,24 +3,26 @@
 namespace Makaira\Headless\Controller\User;
 
 use Magento\Customer\Model\Session;
-use Magento\Framework\App\Action\HttpGetActionInterface;
+use Magento\Framework\App\ActionInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 
-class Get implements HttpGetActionInterface
+class Index implements ActionInterface
 {
-    protected $resultJsonFactory;
+    protected $jsonFactory;
     protected $sessionModel;
 
     /**
-     * @param JsonFactory $resultJsonFactory
+     * Index constructor.
+     * @param JsonFactory $jsonFactory
      * @param Session $sessionModel
      */
     public function __construct(
-        JsonFactory $resultJsonFactory,
+        JsonFactory $jsonFactory,
         Session $sessionModel
-    ) {
-        $this->resultJsonFactory = $resultJsonFactory;
+    )
+    {
+        $this->jsonFactory = $jsonFactory;
         $this->sessionModel = $sessionModel;
     }
 
@@ -29,22 +31,14 @@ class Get implements HttpGetActionInterface
      */
     public function execute()
     {
-        $result = $this->resultJsonFactory->create();
+        $result = $this->jsonFactory->create();
 
         $customer = $this->sessionModel->getCustomer();
-
-        //return ALL data related to the user
         $data = $customer->getData();
-
-        //get only selected Data
-        //$data = [];
-        //$data['id'] = $customer->getId();
-        //$data['name'] = $customer->getName();
-        //$data['email'] = $customer->getEmail();
 
         $response = [
             "success" => true,
-            "user" => $data
+            "user" => empty($data) ? null : $data
         ];
         return $result->setData($response);
     }
