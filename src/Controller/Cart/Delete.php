@@ -4,7 +4,6 @@ namespace Makaira\Headless\Controller\Cart;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Action\HttpDeleteActionInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -47,18 +46,15 @@ class Delete implements HttpDeleteActionInterface
     {
         $result = $this->resultJsonFactory->create();
 
-        $sku = $this->request->get('sku');
-
         try {
+            $sku = $this->request->get('sku');
             $product = $this->productInterface->get($sku);
-
             $quote = $this->sessionModel->getQuote();
 
             $cartItem = $quote->getItemByProduct($product);
             $cartItemId = $cartItem->getId();
 
             $quote->removeItem($cartItemId);
-            $this->helperQuote->save($quote);
 
             $quote->collectTotals();
             $this->helperQuote->save($quote);

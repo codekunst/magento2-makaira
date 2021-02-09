@@ -63,7 +63,6 @@ class Update implements HttpPutActionInterface
             $cartItemId = $cartItem->getId();
 
             $quote->updateItem($cartItemId, $params);
-            $this->helperQuote->save($quote);
 
             $quote->collectTotals();
             $this->helperQuote->save($quote);

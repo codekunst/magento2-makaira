@@ -56,14 +56,15 @@ class Add implements HttpPostActionInterface
             $product = $this->productInterface->get($sku);
             $product->setQty($quantity);
             $quote->addProduct($product, $quantity);
-            $this->helperQuote->save($quote);
 
             $quote->collectTotals();
+            $quote->setTriggerRecollect('1');
             $this->helperQuote->save($quote);
 
             $items = $quote->getAllItems();
 
             $returnedData = [];
+            $subTotal = 0;
             foreach ($items as $item) {
                 $data = [];
                 $data['sku'] = $item->getSku();
@@ -71,10 +72,11 @@ class Add implements HttpPostActionInterface
                 $data['quantity'] = $item->getQty();
                 $data['price'] = $item->getPrice();
 
+                //must recalculate the subtotal manually
+                $subTotal += $item->getPrice()*$item->getQty();
+
                 $returnedData[] = $data;
             }
-
-            $subTotal = $quote->getSubtotal();
 
             $response = [
                 "success" => true,
