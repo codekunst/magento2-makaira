@@ -34,8 +34,7 @@ class Index implements CsrfAwareActionInterface
         Session $sessionModel,
         Quote $helperQuote,
         Http $request
-    )
-    {
+    ) {
         $this->jsonFactory = $jsonFactory;
         $this->productInterface = $productInterface;
         $this->sessionModel = $sessionModel;
@@ -124,7 +123,6 @@ class Index implements CsrfAwareActionInterface
         return $response;
     }
 
-    // TODO: returns price as string AND float, should be a single format every single time
     protected function get()
     {
         try {
@@ -138,7 +136,7 @@ class Index implements CsrfAwareActionInterface
                 $data['sku'] = $item->getSku();
                 $data['name'] = $item->getName();
                 $data['quantity'] = $item->getQty();
-                $data['price'] = $item->getPrice();
+                $data['price'] = floatval($item->getPrice());
 
                 $returnedData[] = $data;
             }
@@ -149,7 +147,7 @@ class Index implements CsrfAwareActionInterface
                 "success" => true,
                 "cart" => [
                     "items" => $returnedData,
-                    "total" => $subTotal
+                    "total" => floatval($subTotal)
                 ]
             ];
         } catch (\Exception $e) {
@@ -163,7 +161,6 @@ class Index implements CsrfAwareActionInterface
         return $response;
     }
 
-    // TODO: put sometimes does not add up the total correctly!
     protected function update()
     {
         $requestBody = json_decode($this->request->getContent(), true);
@@ -176,7 +173,6 @@ class Index implements CsrfAwareActionInterface
         $quantity = $requestBody["quantity"];
 
         try {
-
             $quote = $this->sessionModel->getQuote();
 
             $product = $this->productInterface->get($sku);
@@ -185,35 +181,46 @@ class Index implements CsrfAwareActionInterface
             ];
 
             $cartItem = $quote->getItemByProduct($product);
-            $cartItemId = $cartItem->getId();
+            if (!$cartItem == null) {
+                $cartItemId = $cartItem->getId();
 
-            $quote->updateItem($cartItemId, $params);
+                $quote->updateItem($cartItemId, $params);
 
-            $quote->collectTotals();
-            $this->helperQuote->save($quote);
+                $quote->collectTotals();
+                $quote->setTriggerRecollect('1');
+                $this->helperQuote->save($quote);
 
-            $items = $quote->getAllItems();
+                $items = $quote->getAllItems();
 
-            $returnedData = [];
-            foreach ($items as $item) {
-                $data = [];
-                $data['sku'] = $item->getSku();
-                $data['name'] = $item->getName();
-                $data['quantity'] = $item->getQty();
-                $data['price'] = $item->getPrice();
+                $returnedData = [];
+                $subTotal = 0;
+                foreach ($items as $item) {
+                    $data = [];
+                    $data['sku'] = $item->getSku();
+                    $data['name'] = $item->getName();
+                    $data['quantity'] = $item->getQty();
+                    $data['price'] = $item->getPrice();
 
-                $returnedData[] = $data;
+                    //must recalculate the subtotal manually
+                    $subTotal += $item->getPrice() * $item->getQty();
+
+                    $returnedData[] = $data;
+                }
+
+                $response = [
+                    "success" => true,
+                    "cart" => [
+                        "items" => $returnedData,
+                        "total" => $subTotal
+                    ]
+                ];
+            } else {
+                $response = [
+                    "success" => false,
+                    "message" => "Der Artikel wurde nicht im Warenkorb gefunden",
+                    "sku" => $sku
+                ];
             }
-
-            $subTotal = $quote->getSubtotal();
-
-            $response = [
-                "success" => true,
-                "cart" => [
-                    "items" => $returnedData,
-                    "total" => $subTotal
-                ]
-            ];
         } catch (\Exception $e) {
             $response = [
                 "success" => false,
@@ -240,19 +247,28 @@ class Index implements CsrfAwareActionInterface
             $quote = $this->sessionModel->getQuote();
 
             $cartItem = $quote->getItemByProduct($product);
-            // TODO: check if product exists in cart
-            $cartItemId = $cartItem->getId();
 
-            $quote->removeItem($cartItemId);
+            if (!$cartItem == null) {
+                $cartItemId = $cartItem->getId();
 
-            $quote->collectTotals();
-            $this->helperQuote->save($quote);
+                $quote->removeItem($cartItemId);
 
-            $response = [
-                "success" => true,
-                "message" => "Der Artikel wurde entfernt.",
-                "sku" => $sku
-            ];
+                $quote->collectTotals();
+                $quote->setTriggerRecollect('1');
+                $this->helperQuote->save($quote);
+
+                $response = [
+                    "success" => true,
+                    "message" => "Der Artikel wurde entfernt.",
+                    "sku" => $sku
+                ];
+            } else {
+                $response = [
+                    "success" => false,
+                    "message" => "Der Artikel wurde nicht im Warenkorb gefunden",
+                    "sku" => $sku
+                ];
+            }
         } catch (\Exception $e) {
             $response = [
                 "success" => false,
